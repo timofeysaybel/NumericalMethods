@@ -5,7 +5,7 @@ using namespace std;
 
 class Matrix
 {
-    vector<vector<int>> mat;
+    vector<vector<double>> mat;
     size_t n;
     vector<int> index;
 
@@ -17,7 +17,7 @@ public:
 
     Matrix() {}
 
-    Matrix(vector<vector<int>> vec, size_t size) : mat(vec), n(size) {}
+    Matrix(vector<vector<double>> vec, size_t size) : mat(vec), n(size) {}
 
     Matrix(size_t n);
 
@@ -25,13 +25,13 @@ public:
 
     ~Matrix();
 
-    static Matrix getFromFunc(int (*f)(int,int),size_t size);
+    static Matrix getFromFunc(double (*f)(int,int),size_t size);
 
     Matrix operator=(const Matrix &another);
 
     Matrix operator*(const Matrix &another) const;
 
-    vector<int> operator*(const vector<int> &vec) const;
+    vector<double> operator*(const vector<double> &vec) const;
 
     void calcLU();
 
@@ -45,11 +45,11 @@ public:
 
     size_t getSize() {return n;}
 
-    vector<int> solveL(vector<int> b);
+    vector<double> solveL(vector<double> b);
 
-    vector<int> solveU(vector<int> y);
+    vector<double> solveU(vector<double> y);
 
-    int determinant();
+    double determinant();
 
-    vector<int> solve(vector<int> b) {return solveU(solveL(b));}
+    vector<double> solve(vector<double> b) {return solveU(solveL(b));}
 };

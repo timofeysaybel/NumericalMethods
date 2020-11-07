@@ -3,23 +3,23 @@
 class Equation
 {
     Matrix matrix;
-    vector<int> b;
+    vector<double> b;
 
-    double discrepancy(vector<int> x);
+    double discrepancy(vector<double> x);
 
 public:
 
     Equation() {}
 
-    Equation(Matrix m, vector<int> v) : matrix(m), b(v) {}
+    Equation(Matrix m, vector<double> v) : matrix(m), b(v) {}
 
     ~Equation() {}
 
     static Equation getFromFile(string filename);
 
-    static Equation getFromFunc(int (*f)(int, int));
+    static Equation getFromFunc(double (*f)(int, int));
 
-    vector<int> solve();
+    vector<double> solve();
 
-    void print(vector<int>);
+    void print(vector<double>);
 };

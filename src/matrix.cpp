@@ -20,7 +20,7 @@ Matrix::Matrix(size_t size)
     {
         mat[i].resize(n);
         for (int j = 0; j < n; j++)
-            mat[i][j] = 0;
+            mat[i][j] = 0.0;
     }
 
     index.resize(n);
@@ -70,7 +70,7 @@ Matrix Matrix::operator=(const Matrix &another)
     return *this;
 }
 
-Matrix Matrix::getFromFunc(int (*f)(int, int),size_t size)
+Matrix Matrix::getFromFunc(double (*f)(int, int),size_t size)
 {
     Matrix res;
 
@@ -118,7 +118,7 @@ Matrix Matrix::operator*(const Matrix &another) const
     return res;
 }
 
-vector<int> Matrix::operator*(const vector<int> &vec) const
+vector<double> Matrix::operator*(const vector<double> &vec) const
 {
     if (n != vec.size())
     {
@@ -126,7 +126,7 @@ vector<int> Matrix::operator*(const vector<int> &vec) const
         throw -1;
     }
 
-    vector<int> res(n);
+    vector<double> res(n);
 
     for (int i = 0; i < n; i++)
     {
@@ -232,7 +232,7 @@ int Matrix::getSumCol(int k)
     return res;
 }
 
-vector<int> Matrix::solveL(vector<int> b)
+vector<double> Matrix::solveL(vector<double> b)
 {
     Matrix tmp = getL();
 
@@ -248,7 +248,7 @@ vector<int> Matrix::solveL(vector<int> b)
     return b;
 }
 
-vector<int> Matrix::solveU(vector<int> y)
+vector<double> Matrix::solveU(vector<double> y)
 {
     Matrix tmp = getU();
 
@@ -261,14 +261,14 @@ vector<int> Matrix::solveU(vector<int> y)
     return y;
 }
 
-int Matrix::determinant()
+double Matrix::determinant()
 {
     if (n == 1)
         return mat[0][0];
     if (n == 2)
         return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
 
-    int res = 0;
+    double res = 0;
 
     for (int i = 0; i < n; i++)
     {

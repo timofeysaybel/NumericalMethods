@@ -5,8 +5,8 @@
 
 Equation Equation::getFromFile(string filename)
 {
-    vector<vector<int>> res;
-    vector<int> b;
+    vector<vector<double>> res;
+    vector<double> b;
 
     ifstream file(filename);
 
@@ -53,7 +53,7 @@ Equation Equation::getFromFile(string filename)
     return result;
 }
 
-Equation Equation::getFromFunc(int (*f)(int, int))
+Equation Equation::getFromFunc(double (*f)(int, int))
 {
     Equation res;
 
@@ -72,7 +72,7 @@ Equation Equation::getFromFunc(int (*f)(int, int))
     return res;
 }
 
-void Equation::print(vector<int> x)
+void Equation::print(vector<double> x)
 {
     size_t size = matrix.getSize();
 
@@ -106,7 +106,7 @@ void Equation::print(vector<int> x)
     }
 }
 
-vector<int> Equation::solve()
+vector<double> Equation::solve()
 {
     if (matrix.determinant() == 0)
     {
@@ -117,7 +117,7 @@ vector<int> Equation::solve()
     return matrix.solve(b);
 }
 
-double Equation::discrepancy(vector<int> x)
+double Equation::discrepancy(vector<double> x)
 {
     double sum = 0;
 

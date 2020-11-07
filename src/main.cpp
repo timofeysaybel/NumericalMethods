@@ -2,7 +2,7 @@
 
 #include "../inc/equation.h"
 
-int fillFunc(int i,int j)
+double fillFunc(int i,int j)
 {
     return i*j + 1;
 }
