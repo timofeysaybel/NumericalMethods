@@ -50,6 +50,7 @@ Equation Equation::getFromFile(string filename)
     file.close();
 
     Equation result(Matrix(res,size),b);
+
     return result;
 }
 
@@ -113,7 +114,7 @@ vector<double> Equation::solve()
         cerr << "Матрица A вырожденная" << endl;
         throw -1;
     }
-    matrix.calcLU();
+    matrix.calcLU(b);
     return matrix.solve(b);
 }
 
@@ -121,13 +122,13 @@ double Equation::discrepancy(vector<double> x)
 {
     double sum = 0;
 
-    auto vec = (matrix.getL()*matrix.getU())*x;
+    auto vec = ((matrix.getL())*(matrix.getU()))*x;
 
     for (int i = 0; i < matrix.getSize(); i++)
         vec[i] -= b[i];
 
     for (int i = 0; i < matrix.getSize(); i++)
-        sum += vec[i];
+        sum += vec[i] * vec[i];
 
     return sqrt(sum);
 }

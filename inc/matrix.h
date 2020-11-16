@@ -17,7 +17,7 @@ public:
 
     Matrix() {}
 
-    Matrix(vector<vector<double>> vec, size_t size) : mat(vec), n(size) {}
+    Matrix(vector<vector<double>> vec, size_t size);
 
     Matrix(size_t n);
 
@@ -33,7 +33,7 @@ public:
 
     vector<double> operator*(const vector<double> &vec) const;
 
-    void calcLU();
+    void calcLU(vector<double> &b);
 
     Matrix getL() const;
 

@@ -6,7 +6,7 @@ using namespace std;
 Matrix::~Matrix()
 {
     for (int i = 0; i < mat.size(); i++)
-        mat[i].clear();
+        mat[index[i]].clear();
     mat.clear();
     index.clear();
 }
@@ -15,22 +15,42 @@ Matrix::Matrix(size_t size)
 {
     n = size;
 
+    index.resize(n);
+    for (int i = 0; i < n; i++)
+        index[i] = i;
+
     mat.resize(n);
     for (int i = 0; i < n; i++)
     {
-        mat[i].resize(n);
+        mat[index[i]].resize(n);
         for (int j = 0; j < n; j++)
-            mat[i][j] = 0.0;
+            mat[index[i]][j] = 0.0;
     }
+}
+
+Matrix::Matrix(vector <vector<double>> vec, size_t size)
+{
+    n = size;
 
     index.resize(n);
     for (int i = 0; i < n; i++)
         index[i] = i;
+    mat.resize(n);
+
+    for (int i = 0; i < n; i++)
+    {
+        mat[index[i]].resize(n);
+        for (int j = 0; j < n; j++)
+            mat[index[i]][j] = vec[i][j];
+    }
 }
 
 Matrix::Matrix(const Matrix &another)
 {
     n = another.n;
+    index.resize(n);
+    for (int i = 0; i < n; i++)
+        index[i] = another.index[i];
     mat.resize(n);
     for (int i = 0; i < n; i++)
         mat[i].resize(n);
@@ -39,18 +59,17 @@ Matrix::Matrix(const Matrix &another)
     {
         for (int j = 0; j < n; j++)
         {
-            mat[i][j] = another.mat[i][j];
+            mat[index[i]][j] = another.mat[index[i]][j];
         }
     }
-
-    index.resize(n);
-    for (int i = 0; i < n; i++)
-        index[i] = i;
 }
 
 Matrix Matrix::operator=(const Matrix &another)
 {
     n = another.n;
+    index.resize(n);
+    for (int i = 0; i < n; i++)
+        index[i] = another.index[i];
     mat.resize(n);
     for (int i = 0; i < n; i++)
         mat[i].resize(n);
@@ -59,13 +78,9 @@ Matrix Matrix::operator=(const Matrix &another)
     {
         for (int j = 0; j < n; j++)
         {
-            mat[i][j] = another.mat[i][j];
+            mat[index[i]][j] = another.mat[index[i]][j];
         }
     }
-
-    index.resize(n);
-    for (int i = 0; i < n; i++)
-        index[i] = i;
 
     return *this;
 }
@@ -130,7 +145,7 @@ vector<double> Matrix::operator*(const vector<double> &vec) const
 
     for (int i = 0; i < n; i++)
     {
-        res[i] = 0;
+        res[i] = 0.0;
         for (int j = 0; j < n; j++)
         {
             res[i] += mat[index[i]][j]*vec[j];
@@ -140,9 +155,9 @@ vector<double> Matrix::operator*(const vector<double> &vec) const
     return res;
 }
 
-void Matrix::calcLU()
+void Matrix::calcLU(vector<double> &b)
 {
-    if (mat[0][0] == 0)
+    if (mat[index[0]][0] == 0)
     {
         int maj = findMajor(0);
         int t = index[0];
@@ -151,18 +166,28 @@ void Matrix::calcLU()
     }
 
     for (int i = 1; i < n; i++)
+    {
         mat[index[0]][i] = mat[index[0]][i] / mat[index[0]][0];
-
+        //b[index[0]] /= mat[index[0]][0];
+    }
     for (int i = 1; i < n; i++)
     {
         for (int j = 1; j < n; j++)
         {
-            if (i == j && mat[i][j] == 0)
+            if (i == j)
             {
-                int majIndx = findMajor(j);
-                int tmp = index[j];
-                index[j] = index[majIndx];
-                index[majIndx] = tmp;
+                if (mat[index[i]][j] == 0)
+                {
+                    int majIndx = findMajor(j);
+                    int tmp = index[j];
+                    index[j] = index[majIndx];
+                    index[majIndx] = tmp;
+                }
+                for (int k = j + 1; k < n; k++)
+                {
+                    mat[index[i]][k] = mat[index[i]][k] / mat[index[i]][j];
+                    //b[index[i]] /= mat[index[i]][j];
+                }
             }
             if (i >= j)
             {
@@ -182,7 +207,8 @@ void Matrix::calcLU()
 Matrix Matrix::getL() const
 {
     Matrix res(n);
-
+    for (int i = 0; i < n; i++)
+        res.index[i] = index[i];
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
@@ -191,13 +217,15 @@ Matrix Matrix::getL() const
                 res.mat[res.index[i]][j] = mat[index[i]][j];
         }
     }
+
     return res;
 }
 
 Matrix Matrix::getU() const
 {
     Matrix res(n);
-
+    for (int i = 0; i < n; i++)
+        res.index[i] = index[i];
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
@@ -208,6 +236,7 @@ Matrix Matrix::getU() const
                 res.mat[res.index[i]][j] = 1;
         }
     }
+
     return res;
 }
 
@@ -238,10 +267,10 @@ vector<double> Matrix::solveL(vector<double> b)
 
     for (int i = 0; i < n; i++)
     {
-        b[i] /= tmp.mat[i][i];
+        b[tmp.index[i]] /= tmp.mat[tmp.index[i]][i];
 
         for (int j = i + 1; j < n; j++)
-            b[j] -= tmp.mat[j][i]*b[i];
+            b[tmp.index[j]] -= tmp.mat[tmp.index[j]][i]*b[tmp.index[i]];
 
     }
 
@@ -255,7 +284,7 @@ vector<double> Matrix::solveU(vector<double> y)
     for (int i = 0; i < n; i++)
     {
         for (int j = i - 1; j >= 0; j--)
-            y[j] -= tmp.mat[j][i] * y[i];
+            y[tmp.index[j]] -= tmp.mat[tmp.index[j]][i] * y[tmp.index[i]];
     }
 
     return y;
