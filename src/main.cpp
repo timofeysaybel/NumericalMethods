@@ -1,4 +1,5 @@
 #include <chrono>
+#include <iomanip>
 
 #include "../inc/matrix.h"
 
@@ -38,18 +39,13 @@ int main()
             cin >> size;
             matrix = Matrix::getFromFunc(fillFunc,size);
         }
-
+        matrix.print();
+        matrix.transpose().print();
         if (!(matrix == matrix.transpose()))
         {
             cerr << "Матрица несимметричная" << endl;
             return -1;
         }
-        /*
-        if (matrix.determinant() == 0)
-        {
-            cerr << "Матрица вырожденная" << endl;
-            return -1;
-        }*/
 
         cout << "Введите стратегию выбора обнуляемого элемента" << endl;
         cout << "0 - обнуление максимального элемента" << endl;
@@ -68,7 +64,7 @@ int main()
         Matrix solution;
         vector<double> coef;
         int iterations = matrix.Jacobi(PRECISION,mode,solution,coef);
-
+        //cout << fixed << setprecision(3);
         cout << "Собственные значения:" << endl;
         for (int i = 0; i < coef.size(); i++)
             cout << coef[i] << " ";
@@ -77,6 +73,7 @@ int main()
         if (matrix.getSize() > 10)
         {
             ofstream out(RES_FILE);
+            //out << fixed << setprecision(3);
             out << "Собственные векторы: " << endl;
             matrix.print(out);
         }

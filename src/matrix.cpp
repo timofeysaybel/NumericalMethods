@@ -190,7 +190,7 @@ void Matrix::print(ostream &stream) const
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
-            stream << mat[index[i]][j] << " ";
+            stream << mat[index[i]][j] << "\t";
         stream << endl;
     }
     stream << endl;
@@ -309,18 +309,15 @@ int Matrix::Jacobi(double precision, int mode, Matrix &solution, vector<double> 
             }
             rotation.mat[i][i] = 1;
         }
-        sleep(1);
-        cout << maxI << " " << maxJ << fault << endl;
-        this -> print();
-        if (mat[maxI][maxI] == mat[maxJ][maxJ])
+        double x = -2.0 * mat[maxI][maxJ], y = mat[maxI][maxI] - mat[maxJ][maxJ];
+        if (y == 0)
         {
-            rotation.mat[maxI][maxI] = rotation.mat[maxJ][maxJ] =
-            rotation.mat[maxJ][maxI] = 1 / 2.0;
+            rotation.mat[maxI][maxI] = rotation.mat[maxJ][maxJ] = rotation.mat[maxJ][maxI] = 1 / 2.0;
             rotation.mat[maxI][maxJ] = -1 / 2.0;
         }
         else
         {
-            fi = 0.5 * atan((2.0 * mat[maxI][maxJ]) / (mat[maxI][maxI] - rotation.mat[maxJ][maxJ]));
+            fi = 0.5 * atan((2.0 * mat[maxI][maxJ]) / (mat[maxI][maxI] - mat[maxJ][maxJ]));
             rotation.mat[maxI][maxI] = rotation.mat[maxJ][maxJ] = cos(fi);
             rotation.mat[maxI][maxJ] = -sin(fi);
             rotation.mat[maxJ][maxI] = sin(fi);
@@ -332,6 +329,7 @@ int Matrix::Jacobi(double precision, int mode, Matrix &solution, vector<double> 
 
         iterations++;
     }
+
     Matrix tmp(n);
     coefficients.resize(n);
 
@@ -357,7 +355,7 @@ double Matrix::findElement(int mode, int &maxI, int &maxJ,int iter)
             {
                 for (int j = 0; j < n; j++)
                 {
-                    if (abs(mat[i][j]) > max && i != j)
+                    if (abs(mat[i][j]) > abs(max) && i != j)
                     {
                         max = mat[i][j];
                         maxI = i;
@@ -370,7 +368,7 @@ double Matrix::findElement(int mode, int &maxI, int &maxJ,int iter)
             maxI = findMax();
             for (int j = 0; j < n; j++)
             {
-                if (max < abs(mat[maxI][j]) && maxI != j)
+                if (abs(max) < abs(mat[maxI][j]) && maxI != j)
                 {
                     max = mat[maxI][j];
                     maxJ = j;
@@ -384,7 +382,7 @@ double Matrix::findElement(int mode, int &maxI, int &maxJ,int iter)
                 {
                     for (int j = 0; j < n; j++)
                     {
-                        if (i < j)
+                        if (i != j)
                         {
                             iter--;
                             if (iter <= 0)
@@ -413,7 +411,10 @@ int Matrix::findMax() const
     {
         double tmp = 0.0;
         for (int j = 0; j < n; j++)
-            tmp += mat[i][j] * mat[i][j];
+        {
+            if (i != j)
+                tmp += mat[i][j] * mat[i][j];
+        }
         if (max < tmp)
         {
             max = tmp;
@@ -435,5 +436,6 @@ double Matrix::countFault()
                 res += mat[i][j] * mat[i][j];
         }
     }
+
     return sqrt(res);
 }
