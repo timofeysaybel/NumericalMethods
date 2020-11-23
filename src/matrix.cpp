@@ -125,7 +125,7 @@ Matrix Matrix::operator*(const Matrix &another) const
             res.mat[res.index[i]][j] = 0;
             for (int k = 0; k < n; k++)
             {
-                res.mat[res.index[i]][j] += mat[res.index[i]][k]*another.mat[res.index[k]][j];
+                res.mat[res.index[i]][j] += mat[index[i]][k]*another.mat[another.index[k]][j];
             }
         }
     }
@@ -148,58 +148,63 @@ vector<double> Matrix::operator*(const vector<double> &vec) const
         res[i] = 0.0;
         for (int j = 0; j < n; j++)
         {
-            res[i] += mat[index[i]][j]*vec[j];
+            res[i] += mat[index[i]][j]*vec[index[j]];
         }
     }
 
     return res;
 }
 
+void Matrix::calcL(int k)
+{
+    double sum = 0.0;
+
+    for (int i = k; i < n; i++)
+    {
+        sum = 0.0;
+        for (int j = 0; j < k; j++)
+        {
+            sum += mat[index[i]][j] * mat[index[j]][k];
+        }
+        mat[index[i]][k] = mat[index[i]][k] - sum;
+    }
+}
+
+void Matrix::calcU(int i)
+{
+    double sum = 0.0;
+
+    for (int k = i + 1; k < n; k++)
+    {
+        sum = 0.0;
+        for (int j = 0; j < i; j++)
+        {
+            sum += mat[index[i]][j] * mat[index[j]][k];
+        }
+       mat[index[i]][k] = (mat[index[i]][k] - sum) / mat[index[i]][i];
+    }
+}
+
 void Matrix::calcLU(vector<double> &b)
 {
-    if (mat[index[0]][0] == 0)
-    {
-        int maj = findMajor(0);
-        int t = index[0];
-        index[0] = index[maj];
-        index[maj] = t;
-    }
+    swapLines(0);
+
+    for (int i = 1; i < n; i++)
+        mat[index[0]][i] /=  mat[index[0]][0];
 
     for (int i = 1; i < n; i++)
     {
-        mat[index[0]][i] = mat[index[0]][i] / mat[index[0]][0];
-        //b[index[0]] /= mat[index[0]][0];
+        calcL(i);
+        swapLines(i);
+        calcU(i);
     }
-    for (int i = 1; i < n; i++)
+
+    for (int i = 0; i < n; i++)
     {
-        for (int j = 1; j < n; j++)
+        if (mat[index[i]][i] == 0)
         {
-            if (i == j)
-            {
-                if (mat[index[i]][j] == 0)
-                {
-                    int majIndx = findMajor(j);
-                    int tmp = index[j];
-                    index[j] = index[majIndx];
-                    index[majIndx] = tmp;
-                }
-                for (int k = j + 1; k < n; k++)
-                {
-                    mat[index[i]][k] = mat[index[i]][k] / mat[index[i]][j];
-                    //b[index[i]] /= mat[index[i]][j];
-                }
-            }
-            if (i >= j)
-            {
-                for (int k = 0; k < j; k++)
-                    mat[index[i]][j] -= (mat[index[i]][k] * mat[index[k]][j]);
-            }
-            if (i < j)
-            {
-                for (int k = 0; k < i; k++)
-                    mat[index[i]][j] -= mat[index[i]][k] * mat[index[k]][j];
-                mat[index[i]][j] /= mat[index[i]][i];
-            }
+            cerr << "Матрица A вырожденная" << endl;
+            throw -1;
         }
     }
 }
@@ -207,14 +212,13 @@ void Matrix::calcLU(vector<double> &b)
 Matrix Matrix::getL() const
 {
     Matrix res(n);
-    for (int i = 0; i < n; i++)
-        res.index[i] = index[i];
+
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
         {
             if (i >= j)
-                res.mat[res.index[i]][j] = mat[index[i]][j];
+                res.mat[i][j] = mat[index[i]][j];
         }
     }
 
@@ -224,16 +228,15 @@ Matrix Matrix::getL() const
 Matrix Matrix::getU() const
 {
     Matrix res(n);
-    for (int i = 0; i < n; i++)
-        res.index[i] = index[i];
+
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
         {
             if (i < j)
-                res.mat[res.index[i]][j] = mat[index[i]][j];
+                res.mat[i][j] = mat[index[i]][j];
             if (i == j)
-                res.mat[res.index[i]][j] = 1;
+                res.mat[i][j] = 1;
         }
     }
 
@@ -263,90 +266,61 @@ int Matrix::getSumCol(int k)
 
 vector<double> Matrix::solveL(vector<double> b)
 {
-    Matrix tmp = getL();
-
     for (int i = 0; i < n; i++)
     {
-        b[tmp.index[i]] /= tmp.mat[tmp.index[i]][i];
+        b[index[i]] /= mat[index[i]][i];
 
         for (int j = i + 1; j < n; j++)
-            b[tmp.index[j]] -= tmp.mat[tmp.index[j]][i]*b[tmp.index[i]];
+            b[index[j]] -= mat[index[j]][i] * b[index[i]];
 
     }
-
     return b;
 }
 
 vector<double> Matrix::solveU(vector<double> y)
 {
-    Matrix tmp = getU();
-
-    for (int i = 0; i < n; i++)
+    for (int i = n - 1; i >= 0; i--)
     {
-        for (int j = i - 1; j >= 0; j--)
-            y[tmp.index[j]] -= tmp.mat[tmp.index[j]][i] * y[tmp.index[i]];
+        for (int j = 0; j < i; j++)
+            y[index[j]] -= mat[index[j]][i] * y[index[i]];
     }
-
-    return y;
-}
-
-double Matrix::determinant()
-{
-    if (n == 1)
-        return mat[0][0];
-    if (n == 2)
-        return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
-
-    double res = 0;
-
+    vector<double> res(n);
     for (int i = 0; i < n; i++)
-    {
-        if (i % 2 == 0)
-            res += subMatrix(0, i).determinant() * mat[0][i];
-        else
-            res -= subMatrix(0, i).determinant() * mat[0][i];
-    }
-
-    return res;
-}
-
-Matrix Matrix::subMatrix(int k, int m)
-{
-    Matrix res(n - 1);
-
-    int ri = 0;
-    for (int i = 0; i < n; i++)
-    {
-        int rj = 0;
-        for (int j = 0; j < n; j++)
-        {
-            if (i == k)
-            {
-                ri--;
-                break;
-            }
-            if (j == m)
-                continue;
-
-            res.mat[index[ri]][rj] = mat[index[i]][j];
-            rj++;
-        }
-        ri++;
-    }
-
+        res[i] = y[index[i]];
     return res;
 }
 
 int Matrix::findMajor(int k)
 {
-    int max = 0, maxi = k;
-    for (int i = k; i < n; i++)
+    int max = mat[index[k]][k], maxi = k;
+    for (int i = k + 1; i < n; i++)
     {
         if (abs(max) < abs(mat[index[i]][k]))
         {
             max = mat[index[i]][k];
-            maxi = i;
+            maxi = index[i];
         }
     }
     return maxi;
+}
+
+void Matrix::swapLines(int k)
+{
+    int maj = findMajor(k);
+    int t = index[k];
+    index[k] = index[maj];
+    index[maj] = t;
+}
+
+double Matrix::discrepancy(vector<double> x, vector<double> b)
+{
+    double sum = 0.0;
+    auto vec = (getL()*getU()) * x;
+    for (int i = 0; i < n; i++)
+        vec[i] -= b[index[i]];
+
+    for (int i = 0; i < n; i++)
+        sum += vec[i] * vec[i];
+
+    return sqrt(sum);
 }

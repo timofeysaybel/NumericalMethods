@@ -9,9 +9,13 @@ class Matrix
     size_t n;
     vector<int> index;
 
-    Matrix subMatrix(int k, int m);
-
     int findMajor(int k);
+
+    void swapLines(int k);
+
+    void calcL(int k);
+
+    void calcU(int i);
 
 public:
 
@@ -49,7 +53,8 @@ public:
 
     vector<double> solveU(vector<double> y);
 
-    double determinant();
 
     vector<double> solve(vector<double> b) {return solveU(solveL(b));}
+
+    double discrepancy(vector<double> x, vector<double> b);
 };

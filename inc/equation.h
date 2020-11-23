@@ -5,8 +5,6 @@ class Equation
     Matrix matrix;
     vector<double> b;
 
-    double discrepancy(vector<double> x);
-
 public:
 
     Equation() {}

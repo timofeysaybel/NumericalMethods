@@ -90,7 +90,7 @@ void Equation::print(vector<double> x)
         for (int i = 0; i < size; i++)
             stream << x[i] << " ";
         stream << endl << endl;
-        stream << "Норма невязки: " << discrepancy(x) << endl;
+        stream << "Норма невязки: " << matrix.discrepancy(x,b) << endl;
         cout << "Результат сохранён в файл result" << endl;
     }
     else
@@ -103,32 +103,12 @@ void Equation::print(vector<double> x)
         for (int i = 0; i < size; i++)
             cout << x[i] << " ";
         cout << endl << endl;
-        cout << "Норма невязки: " << discrepancy(x) << endl;
+        cout << "Норма невязки: " << matrix.discrepancy(x,b) << endl;
     }
 }
 
 vector<double> Equation::solve()
 {
-    if (matrix.determinant() == 0)
-    {
-        cerr << "Матрица A вырожденная" << endl;
-        throw -1;
-    }
     matrix.calcLU(b);
     return matrix.solve(b);
-}
-
-double Equation::discrepancy(vector<double> x)
-{
-    double sum = 0;
-
-    auto vec = ((matrix.getL())*(matrix.getU()))*x;
-
-    for (int i = 0; i < matrix.getSize(); i++)
-        vec[i] -= b[i];
-
-    for (int i = 0; i < matrix.getSize(); i++)
-        sum += vec[i] * vec[i];
-
-    return sqrt(sum);
 }
